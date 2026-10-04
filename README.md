@@ -18,13 +18,24 @@ To install a single skill:
 npx skills add nontechguy/skills --skill captains-log
 ```
 
+> **Docker/container users:** During installation, choose **Copy to all agents** instead of the default Symlink — Claude cannot follow symlinks inside a container.
+
 > These paths are for Claude Code. Other agents may use a different skills directory — check your agent's documentation.
+
+### Manual install
+
+If you installed with the default Symlink method and Claude isn't picking up the skills inside a container, copy the skill folder directly instead:
+
+- **Project** (`.claude/skills/`): available to everyone working in that repository.
+- **Personal** (`~/.claude/skills/`): available only to you, across all your projects.
+
+Copy the whole skill folder (e.g. `captains-log/`), so the file ends up at `.claude/skills/captains-log/SKILL.md` or `~/.claude/skills/captains-log/SKILL.md`.
 
 ## Skills
 
-| Skill                         | Description                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [captains-log](#captains-log) | Proposes structured, single-line commit messages and PR titles from what your changes actually do, and flags when a diff doesn't match what you said it does. |
+| Skill | Description |
+| ----- | ----------- |
+| <nobr>[captains-log](#captains-log)</nobr> | Proposes structured, single-line commit messages and PR titles from what your changes actually do, and flags when a diff doesn't match what you said it does. |
 
 ### captains-log
 
