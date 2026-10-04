@@ -1,13 +1,22 @@
 # skills
 
+[![skills.sh](https://skills.sh/b/nontechguy/skills)](https://skills.sh/nontechguy/skills)
+
 A collection of skills for product development workflows
 
-Copy skills to your project `.claude/skills/` directory or to `~/.claude/skills/`. Once copied, your agent will automatically detect and use them based on your prompts. You can also invoke a skill directly by name, e.g. `/captains-log`.
+## Install
 
-**Project** (`.claude/skills/`): available to everyone working in that repository. The skill becomes a tracked file in git.
-**Personal** (`~/.claude/skills/`): available only to you, across all your projects. Nothing is added to the repository.
+```
+npx skills add nontechguy/skills
+```
 
-Copy the whole skill folder (e.g. `captains-log/`), so the file ends up at `.claude/skills/captains-log/SKILL.md` or `~/.claude/skills/captains-log/SKILL.md`.
+This uses skills.sh to install all skills into your project's `.claude/skills/` directory. Once installed, your agent will automatically detect and use them based on your prompts.
+
+To install a single skill:
+
+```
+npx skills add nontechguy/skills --skill captains-log
+```
 
 > These paths are for Claude Code. Other agents may use a different skills directory — check your agent's documentation.
 
