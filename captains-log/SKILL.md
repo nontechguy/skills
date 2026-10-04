@@ -1,6 +1,6 @@
 ---
 name: captains-log
-description: "Write structured, single-line git commit messages in the form type(scope): description, with the correct type chosen from what the diff actually does. Proposes the message for the developer to accept or edit, flags when the diff doesn't match what the developer said the change does, and is also used when Claude commits its own work. Use this skill whenever you are asked to commit, write or suggest a commit message, squash commits, write a PR title, or amend/reword a commit, and whenever you are about to run `git commit` yourself as part of a coding task, even if the user never mentions commit conventions."
+description: "Write structured, single-line git commit messages in the form type(scope): description, with the correct type chosen from what the diff actually does. Proposes the message for the developer to accept or edit, flags when the diff doesn't match what the developer said the change does, and is also used when the agent commits its own work. Use this skill whenever you are asked to commit, write or suggest a commit message, squash commits, write a PR title, or amend/reword a commit, and whenever you are about to run `git commit` yourself as part of a coding task, even if the user never mentions commit conventions."
 ---
 
 # Captain's log
