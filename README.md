@@ -41,16 +41,17 @@ Copy the whole skill folder (e.g. `captains-log/`), so the file ends up at `.cla
 
 Commit messages like update stuff, or `feat:` on every change, make history hard to read and release notes hard to write. captains-log proposes a structured, single-line message based on what the staged diff actually does, and titles PRs the same way. You decide whether to use it, change it, or write your own.
 
-#### Commit message format
+#### Commit message format ([Conventional Commits](https://www.conventionalcommits.org))
 
 ```text
 <type>(<scope>): <description>
 ```
 
-For example: `refactor(FPC-1327): extract JWT parsing into TokenParser`
+For example: `refactor(auth): extract JWT parsing into TokenParser`
 
 **type:** what kind of change this is (see below).
-**scope** (optional): the ticket ID from any project management tool — Jira, Shortcut, Linear, and so on. Taken from your branch name, e.g. `feature/FPC-1327-auth-cleanup` or `feature/SC-42-auth-cleanup`. Left out if no ticket ID is found; it's never guessed.
+**scope** (optional): a noun describing the section of the codebase affected, inferred from the files changed — e.g. `auth`, `api`, `upload`. Omitted if no clear section name presents itself.
+**ticket** (optional): if a ticket ID is found in the branch name, it's added as a `Refs:` footer — e.g. `Refs: FPC-1327`. Never guessed.
 **description:** imperative, lowercase, no trailing period, whole line 72 characters or fewer.
 
 #### PR titles

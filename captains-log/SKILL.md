@@ -41,28 +41,37 @@ The stardate is the current year and day of the year, from `date +%Y.%j` (e.g. `
 
 ## Format
 
-Default to a single line:
+Commit messages follow the [Conventional Commits](https://www.conventionalcommits.org) specification. Default to a single line:
 
 ```
 <type>(<scope>): <description>
 ```
 
-Example: `refactor(FPC-1327): extract token validation from auth service`
+Example: `refactor(auth): extract token validation from auth service`
 
 - **type**: one of the types below, lowercase.
-- **scope**: the ticket ID from any project management tool — Jira, Shortcut, Linear, and so on (e.g. `FPC-1327`, `SC-42`, `ENG-101`). Find it in this order: the user's instructions, the current branch name (`git branch --show-current`, match `[A-Z][A-Z0-9]+-\d+`), recent commits on the branch. The scope is optional: if no ticket ID is found, omit the parentheses entirely (e.g. `style: apply updated prettier config`) rather than inventing or guessing an ID. The one exception is a repo whose commit config requires a scope (see "Repo conventions take precedence"); then ask the developer for the ticket ID instead of making one up.
+- **scope**: optional, a short noun describing the section of the codebase affected, inferred from the staged diff (e.g. `auth`, `api`, `parser`, `ui`). Use the most specific meaningful name from the file paths: `src/auth/` → `auth`; `components/upload/` → `upload`. Omit scope if the diff spans multiple unrelated areas, or if no clear section name presents itself. Never use a ticket ID as scope.
+- **ticket footer**: if a ticket ID is found — check the user's instructions first, then the branch name (`git branch --show-current`, match `[A-Z][A-Z0-9]+-\d+`) — add it as a `Refs:` footer after a blank line. Omit if no ticket is found; never guess one.
 - **description**: imperative mood ("add", "fix", "remove", not "added" or "adds"), lowercase first word, no trailing period, whole line 72 characters or fewer. Describe what changed in terms the reader cares about, not "update file X" or "changes".
 
 ### Keep it to one line
 
-The team prefers single-line commits: they read cleanly in `git log --oneline`, PR views and generated release notes, and the ticket in the scope already links to the fuller context. Put the effort into a precise description rather than a body. If you are tempted to add a body, first try to make the header say it.
+The team prefers single-line commits: they read cleanly in `git log --oneline`, PR views and generated release notes. Put the effort into a precise description rather than a body. If you are tempted to add a body, first try to make the header say it.
 
 Add lines beyond the header only in these cases:
-- **Breaking change** (required): add `!` after the scope and a footer, because release tooling and readers rely on it.
+- **Ticket reference** (when a ticket ID is found): add a `Refs: <ticket>` footer after a blank line.
   ```
-  feat(FPC-1400)!: drop v1 token endpoint
+  refactor(auth): extract JWT parsing into TokenParser
+
+  Refs: FPC-1327
+  ```
+- **Breaking change** (required): add `!` after the type/scope and a `BREAKING CHANGE:` footer, because release tooling and readers rely on it. Include the ticket footer too if one applies.
+  ```
+  feat(api)!: drop v1 token endpoint
 
   BREAKING CHANGE: clients must call /v2/token; v1 now returns 410
+
+  Refs: FPC-1400
   ```
 - **The user explicitly asks** for a body or more detail.
 - **A single commit knowingly contains a secondary change** (see Mixed changes) and the user declined to split it: one short body line naming it.
@@ -200,7 +209,7 @@ When there's no stated intent to compare with, just propose the message. It stil
 
 Drafting is the same in every situation:
 
-1. Check for repo commit conventions (see "Repo conventions take precedence"), then run `git status`, read the staged diff economically (see "Reading the diff economically"), and run `git branch --show-current`, all fresh (for the changes, the ticket ID and the prefix lean). Don't reuse output from earlier in the conversation.
+1. Check for repo commit conventions (see "Repo conventions take precedence"), then run `git status`, read the staged diff economically (see "Reading the diff economically"), and run `git branch --show-current`, all fresh (for the changes, the scope inference, the ticket footer, and the prefix lean). Don't reuse output from earlier in the conversation.
 2. Pick the type using the questions above and write the description from the diff alone.
 3. Write a single-line header. Add more lines only for the cases listed under "Keep it to one line".
 4. Compare it with any stated intent (see "Checking the diff against intent").
@@ -226,16 +235,18 @@ Keep everything around the block short, and don't put anything else in a code bl
 > **Proposed commit message**
 >
 > ```
-> fix(FPC-1402): prevent crash on login with empty email
+> fix(auth): prevent crash on login with empty email
+>
+> Refs: FPC-1402
 > ```
 >
 > Shall I enter this in the ship's log, Captain?
 
 Then follow the developer's lead:
 - **Accepted** → check nothing has changed before committing. When you propose, record the output of `git write-tree`: a single hash of exactly what's staged. It doesn't change what's staged; it only records a snapshot git can clean up later. On acceptance, run `git write-tree` again. If the hash matches, commit with the message exactly as shown, without re-reading the diff. (If `git write-tree` errors, e.g. during an unresolved merge, compare `git diff --staged --stat` output instead.) If they've changed (the developer restaged or unstaged in the meantime), say so ("Readings have changed since my last scan, Captain.") and propose a message for what's staged now instead of committing. If nothing is staged any more, say so and stop.
-- **After committing** (whether with your message or their edited version), confirm in one line: `Aye, Captain. Entry logged.` followed by the short hash and the message, e.g. "Aye, Captain. Entry logged. `a1b2c3d` fix(FPC-1402): prevent crash on login with empty email". Take the hash from the commit output or `git rev-parse --short HEAD`. If the commit failed (e.g. a hook rejected it), don't use this line; report the error plainly.
+- **After committing** (whether with your message or their edited version), confirm in one line: `Aye, Captain. Entry logged.` followed by the short hash and the message, e.g. "Aye, Captain. Entry logged. `a1b2c3d` fix(auth): prevent crash on login with empty email". Take the hash from the commit output or `git rev-parse --short HEAD`. If the commit failed (e.g. a hook rejected it), don't use this line; report the error plainly.
 - **Edited** → commit with their version exactly as written. Don't re-apply the conventions to it, "fix" their wording, or ask them to justify it.
-- **They supply their own message up front** → use it verbatim. Still do the intent check against it: if their message describes something the diff doesn't do, say so before committing. That's a substance problem, not a convention one. Separately, if it's missing a type or ticket ID, you may offer a suggested version once, in one line; if they decline or ignore it, commit theirs and don't raise it again in that conversation.
+- **They supply their own message up front** → use it verbatim. Still do the intent check against it: if their message describes something the diff doesn't do, say so before committing. That's a substance problem, not a convention one. Separately, if it's missing a type, you may offer a suggested version once, in one line; if they decline or ignore it, commit theirs and don't raise it again in that conversation.
 - **They decline the commit** → leave the changes staged or unstaged as they were, and reply "Understood, Captain. Standing by." They may copy the message and commit it themselves; that's their choice.
 
 Never lecture about the convention, refuse a developer's message, or repeat a suggestion they've passed on.
@@ -269,7 +280,7 @@ Use this section when asked to title, open or retitle a PR, or to write a squash
 - If any commit is a breaking change, add `!` to the title.
 
 **Write the title:**
-- Format: `<type>: <description>`, with no ticket ID and no branch name, e.g. `feat: add CSV export to reports page`. The type is what lets release notes group the squash commit on main; the ticket is already linked to the PR through the branch, so it would only clutter the title. (Commit messages keep their ticket scope; this applies to PR titles only.) If the repo's commit config requires a scope, follow it (see "Repo conventions take precedence").
+- Format: `<type>: <description>`, with no ticket ID and no branch name, e.g. `feat: add CSV export to reports page`. The type is what lets release notes group the squash commit on main; the ticket is already linked to the PR through the branch, so it would only clutter the title. (Commit messages reference the ticket in a `Refs:` footer; this applies to PR titles only.) If the repo's commit config requires a scope, follow it (see "Repo conventions take precedence").
 - Describe the overall outcome of the PR, not a list of its commits.
 - Keep it to about 65 characters, because GitHub usually appends ` (#123)` to the squash commit, and the result should still fit in 72.
 
@@ -285,40 +296,64 @@ The intent check applies here too: if the developer has said what the PR does an
 ## Examples
 
 Branch `feature/FPC-1327-auth-cleanup`. Diff moves JWT parsing out of `AuthService` into a new `TokenParser` class; tests unchanged and passing. Prefix leans `feat`, but behaviour is unchanged.
-→ `refactor(FPC-1327): extract JWT parsing into TokenParser`
+```
+refactor(auth): extract JWT parsing into TokenParser
+
+Refs: FPC-1327
+```
 
 Branch `bugfix/FPC-1402-empty-email`. Diff adds a null check so login no longer throws when the email field is empty.
-→ `fix(FPC-1402): prevent crash on login with empty email`
+```
+fix(auth): prevent crash on login with empty email
+
+Refs: FPC-1402
+```
 
 Branch `task/FPC-1388-reports`. Diff adds an "export to CSV" button on the reports page. No lean from the prefix; the diff is new capability.
-→ `feat(FPC-1388): add CSV export to reports page`
+```
+feat(reports): add CSV export to reports page
+
+Refs: FPC-1388
+```
 
 Branch `feature/FPC-1410-file-upload`. Diff adds a backend upload service and storage adapter; no UI yet.
-→ `feat(FPC-1410): add upload service and storage adapter`
+```
+feat(upload): add upload service and storage adapter
+
+Refs: FPC-1410
+```
 
 Branch `feature/FPC-1410-file-upload`, later commit. Diff adds the upload component with size and type error messages.
-→ `feat(FPC-1410): add file upload component with validation errors`
+```
+feat(upload): add file upload component with validation errors
+
+Refs: FPC-1410
+```
 
 Branch `bugfix/FPC-1415-upload-msg`, after release. Diff corrects the file-size limit shown in the error message.
-→ `fix(FPC-1415): show correct size limit in upload error`
+```
+fix(upload): show correct size limit in upload error
+
+Refs: FPC-1415
+```
 
 Diff: new unit tests for the password reset flow only.
-→ `test(FPC-1391): cover expired and reused password reset tokens`
+→ `test(auth): cover expired and reused password reset tokens`
 
 Diff: only `__snapshots__/Header.test.tsx.snap` regenerated after a previous commit changed the header markup.
-→ `test(FPC-1422): update header snapshots`
+→ `test(header): update header snapshots`
 
 Diff: button padding and alignment corrected in `checkout.css`, plus its regenerated snapshot.
-→ `fix(FPC-1425): align checkout button with form fields`
+→ `fix(checkout): align checkout button with form fields`
 
 Diff: hard-coded colours in stylesheets replaced with CSS variables; rendering unchanged.
-→ `refactor(FPC-1430): replace hard-coded colours with CSS variables`
+→ `refactor(styles): replace hard-coded colours with CSS variables`
 
 Diff: `.prettierrc` changed and whole `src/` reformatted.
 → `style: apply updated prettier config`
 
 Diff: explanatory comments added above the retry logic in `apiClient.ts`; no code changed.
-→ `docs(FPC-1450): explain retry backoff in api client`
+→ `docs(api): explain retry backoff in api client`
 
-Branch `feature/FPC-1410-file-upload` with commits: `feat(FPC-1410): add upload service and storage adapter`, `feat(FPC-1410): add file upload component with validation errors`, `fix(FPC-1410): handle upload timeout`, `test(FPC-1410): cover upload size limits`. The fix corrects work from earlier on the same branch, so it doesn't count.
+Branch `feature/FPC-1410-file-upload` with commits: `feat(upload): add upload service and storage adapter`, `feat(upload): add file upload component with validation errors`, `fix(upload): handle upload timeout`, `test(upload): cover upload size limits`. The fix corrects work from earlier on the same branch, so it doesn't count.
 → PR title: `feat: add file upload with validation errors`
