@@ -67,7 +67,7 @@ Say "Boots on, fetching tools from the truck." then proceed.
 
 - Confirm the working directory is inside a git repo: `git rev-parse --show-toplevel`. If not, stop with: "Not inside a git repository."
 - Confirm `gh` is available and authenticated:
-  - Run `gh --version`. If it fails, stop with: "gh is not installed. Install it with `brew install gh` (or see cli.github.com for other platforms) then try again."
+  - Run `gh --version`. If it fails, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. Then try again."
   - Run `gh auth status`. If it fails, show this message exactly as written — do not paraphrase or shorten it:
     > gh is not authenticated. Enter a GitHub personal access token to continue (or press enter to cancel).
     >
@@ -82,7 +82,16 @@ Say "Boots on, fetching tools from the truck." then proceed.
 
 Run `git fetch --prune` to refresh remote-tracking refs and update the `[gone]` markers.
 
-If `git fetch --prune` fails, warn: "git fetch failed — branch status may be stale. Proceed with cached remote state, or fix the connection and try again? [y/N]" If the developer says no, stop. If yes, continue with whatever `[gone]` markers are already present.
+If `git fetch --prune` fails:
+
+1. Check whether the failure is SSH-related and the remote uses an SSH URL: `git remote get-url origin`. If the URL starts with `git@github.com:` and the error mentions SSH or a missing host, the container likely has no SSH binary. Say: "git fetch failed — the remote uses an SSH URL but SSH may not be available here. Run these two commands to redirect git over HTTPS instead:" then show:
+   ```
+   gh auth setup-git
+   git config --global url."https://github.com/".insteadOf "git@github.com:"
+   ```
+   Then say: "Run `/lumber-jane` again once that's done." and stop — do not continue with stale state after an SSH failure.
+
+2. For any other fetch failure, warn: "git fetch failed — branch status may be stale. Proceed with cached remote state, or fix the connection and try again? [y/N]" If the developer says no, stop. If yes, continue with whatever `[gone]` markers are already present.
 
 List all local branches with their upstream status:
 ```
