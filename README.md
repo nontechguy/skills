@@ -1,8 +1,6 @@
 # skills
 
-[![skills.sh](https://skills.sh/b/nontechguy/skills)](https://skills.sh/nontechguy/skills)
-
-A collection of skills for product development workflows
+A collection of skills for cleaner Git workflows.
 
 ## Install
 
@@ -33,9 +31,10 @@ Copy the whole skill folder (e.g. `captains-log/`), so the file ends up at `.cla
 
 ## Skills
 
-| Skill | Description |
-| ----- | ----------- |
-| <nobr>[captains-log](#captains-log)</nobr> | Proposes structured, single-line commit messages and PR titles from what your changes actually do, and flags when a diff doesn't match what you said it does. |
+| Skill                                      | Description                                                                                                                                                                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <nobr>[captains-log](#captains-log)</nobr> | Proposes structured, single-line commit messages and PR titles from what your changes actually do, and flags when a diff doesn't match what you said it does.                                                                |
+| <nobr>[lumber-jane](#lumber-jane)</nobr>   | Prunes stale local branches left behind after reviewing other developers' PRs. Safe to run any time — only deletes branches where the remote is gone, the PR was merged by someone else, and no local commits were left out. |
 
 ### captains-log
 
@@ -57,3 +56,13 @@ For example: `refactor(auth): extract JWT parsing into TokenParser`
 #### PR titles
 
 Ask "title this PR" or "write a PR title" and captains-log reads the net diff of the whole branch — not just the latest commit — to propose a title. By default, format is `<type>: <description>` with no ticket ID, assuming squash-merge — where the PR title becomes the commit on main and the ticket is already linked through the branch. For example: `feat: add file upload with validation errors`.
+
+### lumber-jane
+
+**Requires:** GitHub and the [gh CLI](https://cli.github.com).
+
+Reviewing a PR means checking out someone else's branch locally. Once the PR is merged and the remote is deleted, the local copy stays behind. Over time those stack up. lumber-jane finds them and clears them out.
+
+Run `/lumber-jane` and it scans your local branches, looks up each one's PR on GitHub, and proposes a list of branches safe to delete. A branch only makes the list if the remote is gone, the PR was merged, it was opened by someone else, and every local commit made it into the PR. You confirm before anything is deleted.
+
+Your own merged branches are offered separately — you choose which to add to the clearing, or skip them entirely.
