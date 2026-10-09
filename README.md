@@ -66,3 +66,5 @@ Reviewing a PR means checking out someone else's branch locally. Once the PR is 
 Run `/lumber-jane` and it scans your local branches, looks up each one's PR on GitHub, and proposes a list of branches safe to delete. A branch only makes the list if the remote is gone, the PR was merged, it was opened by someone else, and every local commit made it into the PR. You confirm before anything is deleted.
 
 Your own merged branches are offered separately — you choose which to add to the clearing, or skip them entirely.
+
+**Security note:** lumber-jane reads PR metadata from GitHub, including author usernames and branch names set by third parties. This carries an indirect prompt injection risk. The skill instructs the model to treat all values from GitHub as opaque data — never as instructions — and restricts reads to specific fields (author, state, commit SHA, base branch). PR titles, bodies, and comments are never read. Snyk may flag this as a medium-risk finding (W011); this is expected behaviour for any skill that reads external content.
