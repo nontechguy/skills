@@ -14,28 +14,28 @@ lumber-jane's name speaks the language of the work: worktrees, branches, pruning
 
 **The lines, used as written:**
 
-| Moment | Line |
-|---|---|
-| Starting / scanning | "Boots on, fetching tools from the truck." |
-| Nothing to prune | "Cruised the worktree. Nothing to prune." |
-| Proposing deletions | "lumber-jane deletes local dead branches only. Nothing on GitHub changes." |
-| After deletion | "Cleared, tools are back in the truck." |
-| Developer declines | "Not a branch touched, standing down." |
-| Kept — unpushed commits | "Left standing — green wood:" |
-| Current branch is a candidate | "You're on a marked branch. Step clear?" |
+| Moment                        | Line                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| Starting / scanning           | "Boots on, fetching tools from the truck."                                 |
+| Nothing to prune              | "Cruised the worktree. Nothing to prune."                                  |
+| Proposing deletions           | "lumber-jane deletes local dead branches only. Nothing on GitHub changes." |
+| After deletion                | "Area cleared, tools are back in the truck."                               |
+| Developer declines            | "Not a branch touched, standing down."                                     |
+| Kept — unpushed commits       | "Left standing — green wood:"                                              |
+| Current branch is a candidate | "You're on a marked branch. Step clear?"                                   |
 
 Keep everything else plain: git errors, `gh` failures, pre-flight stops, and reasoning about why a branch is kept or deleted.
 
 **Plain replies on request:** if the developer asks to drop the theme ("drop the logging stuff", "no theme", "plain"), leave out every themed line for the rest of the conversation without comment. Use these plain equivalents:
 
-| Moment | Plain |
-|---|---|
-| Starting / scanning | "Scanning branches..." |
-| Nothing to prune | "Nothing to clean up." |
-| Proposing deletions | *(no opener — go straight to the summary)* |
-| After deletion | "Done." |
-| Developer declines | "Nothing deleted." |
-| Kept — unpushed commits | "Kept — unpushed commits:" |
+| Moment                        | Plain                                                          |
+| ----------------------------- | -------------------------------------------------------------- |
+| Starting / scanning           | "Scanning branches..."                                         |
+| Nothing to prune              | "Nothing to clean up."                                         |
+| Proposing deletions           | _(no opener — go straight to the summary)_                     |
+| After deletion                | "Done."                                                        |
+| Developer declines            | "Nothing deleted."                                             |
+| Kept — unpushed commits       | "Kept — unpushed commits:"                                     |
 | Current branch is a candidate | "You're on a branch that would be deleted. Switch away first?" |
 
 ## Safety rules
@@ -67,27 +67,28 @@ Say "Boots on, fetching tools from the truck." then proceed.
 
 - Confirm the working directory is inside a git repo: `git rev-parse --show-toplevel`. If not, stop with: "Not inside a git repository."
 - Confirm `gh` is available and authenticated:
-  - Run `gh --version`. If it fails, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. If none of those work and Node.js is available, download the binary directly:" then show:
-    ```
-    node -e "
-    const https = require('https'), fs = require('fs');
-    const file = fs.createWriteStream('/tmp/gh.tar.gz');
-    https.get('https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz', res => {
-      const follow = r => { if (r.statusCode >= 300 && r.headers.location) https.get(r.headers.location, follow); else { r.pipe(file); file.on('finish', () => { file.close(); console.log('done'); }); } };
-      follow(res);
-    });
-    "
-    tar -xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
-    ```
-    Then say: "Then run `/lumber-jane` again."
-  - Run `gh auth status`. If it fails, show this message exactly as written — do not paraphrase or shorten it:
-    > gh is not authenticated. Enter a GitHub personal access token to continue (or press enter to cancel).
-    >
-    > **To get a token:** if you already have gh authenticated on your host machine, run `gh auth token` there to retrieve your existing token. Otherwise generate one at github.com/settings/tokens — read access to Pull requests is all that's needed.
-    >
-    > **To avoid this prompt every time** (container users): mount your host credentials (`-v ~/.config/gh:/root/.config/gh`) or set a `GH_TOKEN` environment variable in your Docker config.
-    
-    If the developer provides a token, set `GH_TOKEN=<token>` for all subsequent `gh` commands in this run. Do not write it to disk or any file. If they press enter without a token, stop.
+    - Run `gh --version`. If it fails, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. If none of those work and Node.js is available, download the binary directly:" then show:
+        ```
+        node -e "
+        const https = require('https'), fs = require('fs');
+        const file = fs.createWriteStream('/tmp/gh.tar.gz');
+        https.get('https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz', res => {
+          const follow = r => { if (r.statusCode >= 300 && r.headers.location) https.get(r.headers.location, follow); else { r.pipe(file); file.on('finish', () => { file.close(); console.log('done'); }); } };
+          follow(res);
+        });
+        "
+        tar -xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
+        ```
+        Then say: "Then run `/lumber-jane` again."
+    - Run `gh auth status`. If it fails, show this message exactly as written — do not paraphrase or shorten it:
+
+        > gh is not authenticated. Enter a GitHub personal access token to continue (or press enter to cancel).
+        >
+        > **To get a token:** if you already have gh authenticated on your host machine, run `gh auth token` there to retrieve your existing token. Otherwise generate one at github.com/settings/tokens — read access to Pull requests is all that's needed.
+        >
+        > **To avoid this prompt every time** (container users): mount your host credentials (`-v ~/.config/gh:/root/.config/gh`) or set a `GH_TOKEN` environment variable in your Docker config.
+
+        If the developer provides a token, set `GH_TOKEN=<token>` for all subsequent `gh` commands in this run. Do not write it to disk or any file. If they press enter without a token, stop.
 - List all worktree-checked-out branches: `git worktree list --porcelain | grep '^branch'`. Add these to the protected list for this run — `git branch -D` would fail on them anyway, and treating them like the current branch is the right behaviour. They are not mentioned in the summary unless they would otherwise have qualified for deletion, in which case note them alongside the current-branch case.
 
 ### 2. Fetch and find gone branches
@@ -97,15 +98,16 @@ Run `git fetch --prune` to refresh remote-tracking refs and update the `[gone]` 
 If `git fetch --prune` fails:
 
 1. Check whether the failure is SSH-related and the remote uses an SSH URL: `git remote get-url origin`. If the URL starts with `git@github.com:` and the error mentions SSH or a missing host, the container likely has no SSH binary. Apply the fix automatically:
-   - Run `gh auth setup-git`.
-   - Run `git config --global url."https://github.com/".insteadOf "git@github.com:"`.
-   - Retry `git fetch --prune` (or `GH_TOKEN=<token> git fetch --prune` if a token was supplied during pre-flight).
-   - If the retry succeeds, continue without interruption.
-   - If the retry fails, stop with: "git fetch failed after redirecting SSH to HTTPS. Check your gh authentication and try again."
+    - Run `gh auth setup-git`.
+    - Run `git config --global url."https://github.com/".insteadOf "git@github.com:"`.
+    - Retry `git fetch --prune` (or `GH_TOKEN=<token> git fetch --prune` if a token was supplied during pre-flight).
+    - If the retry succeeds, continue without interruption.
+    - If the retry fails, stop with: "git fetch failed after redirecting SSH to HTTPS. Check your gh authentication and try again."
 
 2. For any other fetch failure, warn: "git fetch failed — branch status may be stale. Proceed with cached remote state, or fix the connection and try again? [y/N]" If the developer says no, stop. If yes, continue with whatever `[gone]` markers are already present.
 
 List all local branches with their upstream status:
+
 ```
 git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads
 ```
@@ -123,6 +125,7 @@ Get the current user: `gh api user --jq .login`
 If this fails, stop with: "Could not determine GitHub user — cannot safely distinguish your branches from others. Check your gh authentication and try again."
 
 For each remaining candidate, look up its PR:
+
 ```
 gh pr list --state all --head <branch> --json author,number,state,headRefOid,baseRefName
 ```
@@ -135,10 +138,10 @@ A branch is **deleted** only if all four are true:
 2. **PR was merged** — `state == "MERGED"`. A closed-without-merging PR means the work was abandoned; that branch is kept.
 3. **PR was authored by someone else** — `author.login` ≠ current user.
 4. **Every local commit made it into the PR** — the local branch tip is an ancestor of, or equal to, the PR's `headRefOid`:
-   ```
-   git cat-file -e <headRefOid>   # check the commit exists locally first
-   git merge-base --is-ancestor <local-tip> <headRefOid>
-   ```
+    ```
+    git cat-file -e <headRefOid>   # check the commit exists locally first
+    git merge-base --is-ancestor <local-tip> <headRefOid>
+    ```
 
 A branch is **kept** (and noted) if:
 
@@ -166,6 +169,7 @@ If the developer declines to switch, exclude the current branch from deletion an
 ### 6. Confirmation summary
 
 Show the summary and wait for confirmation before deleting anything. Use these formats consistently:
+
 - The two crew headings (`lumber-jane and her crew found...` and `lumber-jane and her crew left...`) are displayed in **bold**.
 - Dead branches (under the "found dead branches" heading): `<branch>   PR #<n> by <author> (merged)`
 - Own merged (selectable): `<n>  <branch>   PR #<n> by you (merged)`
@@ -220,6 +224,7 @@ Add your dead branches to the pile? Enter numbers to pick (e.g. 1 2), y for all,
 ```
 
 **Own-branches prompt rules:**
+
 - The heading is always formatted as `lumber-jane and her crew left (n) of your dead branches alone:` where `(n)` is the count in parentheses — never as a bare number.
 - If the developer enters numbers: add the matched branches to the confirmed delete list. Ignore invalid numbers silently.
 - If the developer enters `y`: add all own merged branches to the confirmed delete list.
@@ -245,7 +250,7 @@ Deleted:
 
 Take each SHA from `git rev-parse <branch>` before deleting. The `git branch <name> <sha>` command is the exact restore command the developer can run if needed.
 
-Say "Cleared, tools are back in the truck."
+Say "Area cleared, tools are back in the truck."
 
 ## Commit authorship note
 
