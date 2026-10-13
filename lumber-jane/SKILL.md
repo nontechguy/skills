@@ -67,19 +67,21 @@ Say "Boots on, eyes on the forest floor." then proceed.
 
 - Confirm the working directory is inside a git repo: `git rev-parse --show-toplevel`. If not, stop with: "Not inside a git repository."
 - Confirm `gh` is available and authenticated:
-    - Run `gh --version`. If it fails, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. If none of those work and Node.js is available, download the binary directly:" then show:
-        ```
-        node -e "
-        const https = require('https'), fs = require('fs');
-        const file = fs.createWriteStream('/tmp/gh.tar.gz');
-        https.get('https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz', res => {
-          const follow = r => { if (r.statusCode >= 300 && r.headers.location) https.get(r.headers.location, follow); else { r.pipe(file); file.on('finish', () => { file.close(); console.log('done'); }); } };
-          follow(res);
-        });
-        "
-        tar -xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
-        ```
-        Then say: "Then run `/lumber-jane` again."
+    - Run `gh --version`. If it fails:
+        - Check the platform: run `uname -s` and `uname -m`. If both return `Linux` and `x86_64`, and Node.js is available (`node --version`), install `gh` automatically without stopping:
+            ```
+            node -e "
+            const https = require('https'), fs = require('fs');
+            const file = fs.createWriteStream('/tmp/gh.tar.gz');
+            https.get('https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz', res => {
+              const follow = r => { if (r.statusCode >= 300 && r.headers.location) https.get(r.headers.location, follow); else { r.pipe(file); file.on('finish', () => { file.close(); console.log('done'); }); } };
+              follow(res);
+            });
+            "
+            tar -xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
+            ```
+            If the install succeeds, continue pre-flight without interruption. If it fails, stop with: "Could not install gh automatically. Install it manually and run `/lumber-jane` again."
+        - If the platform is not Linux x86_64, or Node.js is unavailable, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. Then run `/lumber-jane` again."
     - Run `gh auth status`. If it fails, show this message exactly as written — do not paraphrase or shorten it:
 
         > gh is not authenticated. Enter a GitHub personal access token to continue (or press enter to cancel).
