@@ -16,7 +16,7 @@ lumber-jane's name speaks the language of the work: worktrees, branches, pruning
 
 | Moment                        | Line                                                                       |
 | ----------------------------- | -------------------------------------------------------------------------- |
-| Starting / scanning           | "Boots on, fetching tools from the truck."                                 |
+| Starting / scanning           | "Boots on, eyes on the forest floor."                                 |
 | Nothing to prune              | "Cruised the worktree. Nothing to prune."                                  |
 | Proposing deletions           | "lumber-jane deletes local dead branches only. Nothing on GitHub changes." |
 | After deletion                | "Area cleared, tools are back in the truck."                               |
@@ -63,7 +63,7 @@ Follow these steps in order.
 
 ### 1. Pre-flight checks
 
-Say "Boots on, fetching tools from the truck." then proceed.
+Say "Boots on, eyes on the forest floor." then proceed.
 
 - Confirm the working directory is inside a git repo: `git rev-parse --show-toplevel`. If not, stop with: "Not inside a git repository."
 - Confirm `gh` is available and authenticated:
