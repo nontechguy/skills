@@ -1,7 +1,7 @@
 ---
 name: lumber-jane
 disable-model-invocation: true
-description: "Prunes stale local branches left behind after reviewing other developers' PRs. Only deletes local branches where: the remote is gone, the PR was authored by someone else, and all local commits made it into the PR. Run with /lumber-jane."
+description: "Prunes stale local branches left behind after reviewing other developers' PRs. Only deletes local branches where: the remote is gone, the PR was authored by someone else, and all local commits made it into the PR. Works in containers — if gh is not authenticated, switches to host-assisted mode. Run with /lumber-jane."
 ---
 
 # lumber-jane
@@ -82,29 +82,20 @@ Say "Boots on, eyes on the forest floor." then proceed.
             ```
             If the install succeeds, continue pre-flight without interruption. If it fails, stop with: "Could not install gh automatically. Install it manually and run `/lumber-jane` again."
         - If the platform is not Linux x86_64, or Node.js is unavailable, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. Then run `/lumber-jane` again."
-    - Run `gh auth status`. If it fails, show this message exactly as written — do not paraphrase or shorten it:
-
-        > gh is not authenticated. Enter a GitHub personal access token to continue (or press enter to cancel).
-        >
-        > **To get a token:** if you already have gh authenticated on your host machine, run `gh auth token` there to retrieve your existing token. Otherwise generate one at github.com/settings/tokens — read access to Pull requests is all that's needed.
-        >
-        > **To avoid this prompt every time** (container users): mount your host credentials (`-v ~/.config/gh:/root/.config/gh`) or set a `GH_TOKEN` environment variable in your Docker config.
-
-        If the developer provides a token, set `GH_TOKEN=<token>` for all subsequent `gh` commands in this run. Do not write it to disk or any file. If they press enter without a token, stop.
+    - Run `gh auth status`. If it fails, say: "gh is not authenticated. Switching to host-assisted mode — I'll tell you what to run on your host machine where gh is already set up." Then continue pre-flight without stopping. Record that this run is in **host-assisted mode** (affects step 4).
 - List all worktree-checked-out branches: `git worktree list --porcelain | grep '^branch'`. Add these to the protected list for this run — `git branch -D` would fail on them anyway, and treating them like the current branch is the right behaviour. They are not mentioned in the summary unless they would otherwise have qualified for deletion, in which case note them alongside the current-branch case.
 
 ### 2. Fetch and find gone branches
 
-Run `git fetch --prune` to refresh remote-tracking refs and update the `[gone]` markers. If a `GH_TOKEN` was supplied during pre-flight, prefix the command: `GH_TOKEN=<token> git fetch --prune`.
+Run `git fetch --prune` to refresh remote-tracking refs and update the `[gone]` markers.
 
 If `git fetch --prune` fails:
 
 1. Check whether the failure is SSH-related and the remote uses an SSH URL: `git remote get-url origin`. If the URL starts with `git@github.com:` and the error mentions SSH or a missing host, the container likely has no SSH binary. Apply the fix automatically:
-    - Run `gh auth setup-git`.
     - Run `git config --global url."https://github.com/".insteadOf "git@github.com:"`.
-    - Retry `git fetch --prune` (or `GH_TOKEN=<token> git fetch --prune` if a token was supplied during pre-flight).
+    - Retry `git fetch --prune`.
     - If the retry succeeds, continue without interruption.
-    - If the retry fails, stop with: "git fetch failed after redirecting SSH to HTTPS. Check your gh authentication and try again."
+    - If the retry fails, stop with: "git fetch failed after redirecting SSH to HTTPS. Check your network connection and try again."
 
 2. For any other fetch failure, warn: "git fetch failed — branch status may be stale. Proceed with cached remote state, or fix the connection and try again? [y/N]" If the developer says no, stop. If yes, continue with whatever `[gone]` markers are already present.
 
@@ -121,6 +112,24 @@ Collect every branch where the upstream column shows `[gone]`. These are the can
 Remove any candidates that match the protected list. Note each one — a protected branch with a gone remote is unusual and worth surfacing: "Skipped `develop` (protected)".
 
 ### 4. Look up PRs and apply deletion criteria
+
+**If running in host-assisted mode** (gh not authenticated in this environment):
+
+If there are no candidate branches after step 3, skip to step 6 ("nothing to prune"). Otherwise, generate the following command with the actual candidate branch names filled in, and ask the developer to run it on their host machine and paste the output:
+
+```bash
+echo "=== current-user ==="; gh api user --jq .login
+for b in <branch1> <branch2> ...; do
+  echo "=== $b ==="
+  gh pr list --state all --head "$b" --json author,number,state,headRefOid,baseRefName
+done
+```
+
+Say: "Run this on your host machine where gh is authenticated, then paste the output here."
+
+Wait for the paste, then parse it: the `=== current-user ===` section gives the login; each `=== <branch> ===` section contains the JSON array from `gh pr list` for that branch. Treat missing or malformed sections as "no PR found" — keep the branch.
+
+**If running normally** (gh authenticated locally):
 
 Get the current user: `gh api user --jq .login`
 

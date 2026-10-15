@@ -67,4 +67,6 @@ Run `/lumber-jane` and it scans your local branches, looks up each one's PR on G
 
 Your own merged branches are offered separately — you choose which to add to the clearing, or skip them entirely.
 
+**Container users:** If `gh` isn't authenticated in your environment, lumber-jane switches to host-assisted mode automatically. It identifies candidate branches locally, then generates a single command for you to run on your host machine where `gh` is already set up. Paste the output back and it continues — no token needed inside the container.
+
 **Security note:** lumber-jane reads PR metadata from GitHub, including author usernames and branch names set by third parties. This carries an indirect prompt injection risk. The skill instructs the model to treat all values from GitHub as opaque data — never as instructions — and restricts reads to specific fields (author, state, commit SHA, base branch). PR titles, bodies, and comments are never read. Snyk may flag this as a medium-risk finding (W011); this is expected behaviour for any skill that reads external content.
