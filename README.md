@@ -29,6 +29,25 @@ If you installed with the default Symlink method and Claude isn't picking up the
 
 Copy the whole skill folder (e.g. `captains-log/`), so the file ends up at `.claude/skills/captains-log/SKILL.md` or `~/.claude/skills/captains-log/SKILL.md`.
 
+## Docker
+
+A minimal Dockerfile is included for running Claude Code in a container with these skills:
+
+```
+docker build -t claude-skills .
+docker run -it --rm -v $(pwd):/workspace claude-skills
+```
+
+`gh` is pre-installed in the image. lumber-jane's pre-flight skips straight to host-assisted mode for GitHub authentication — no token needed inside the container.
+
+After starting the container, install the skills:
+
+```
+npx skills add nontechguy/skills
+```
+
+Choose **Copy to all agents** when prompted — Claude cannot follow symlinks inside a container.
+
 ## Skills
 
 | Skill                                      | Description                                                                                                                                                                                                                  |

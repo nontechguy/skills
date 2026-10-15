@@ -1,0 +1,13 @@
+FROM node:22-slim
+
+RUN apt-get update && apt-get install -y \
+    git \
+    gh \
+    ca-certificates \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
+
+WORKDIR /workspace
+ENTRYPOINT ["claude"]
