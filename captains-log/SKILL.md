@@ -187,7 +187,22 @@ Only open an excluded file's contents if the developer asks about it or the type
 
 ## Mixed changes
 
-If the diff contains unrelated changes that would need different types (say, a bug fix plus an unrelated rename), suggest splitting them into separate commits, because one line can't describe both honestly, and splitting keeps each message single-line. For a developer's commit, name which files or changes belong together and let them restage; don't unstage or restage anything yourself. This is a suggestion; the developer decides. If they want a single commit anyway, use the type of the change with the most user impact (`feat` > `fix` > `perf` > `refactor` > the rest) and name the secondary change in one short body line.
+If the diff contains unrelated changes that would need different types (say, a bug fix plus an unrelated rename), suggest splitting them into separate commits, because one line can't describe both honestly, and splitting keeps each message single-line.
+
+Present each proposed group with its suggested commit message and the files that belong to it:
+
+```
+Suggested splits:
+
+`feat(upload): add file upload component`
+  upload/UploadButton.tsx
+  upload/UploadService.ts
+
+`fix(auth): handle null email on login`
+  auth/LoginForm.tsx
+```
+
+Ask which group the developer wants to stage and commit first. For a developer's commit, don't unstage or restage anything yourself — name the files and let them restage. This is a suggestion; the developer decides. If they want a single commit anyway, use the type of the change with the most user impact (`feat` > `fix` > `perf` > `refactor` > the rest) and name the secondary change in one short body line.
 
 ## Checking the diff against intent
 
