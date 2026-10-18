@@ -206,6 +206,22 @@ Ask which group the developer wants to stage and commit first. For a developer's
 
 Same-type bundles also need splitting. Type conflict is the obvious trigger, but scope conflict is just as important. If the diff touches independent areas of the codebase — even if every change is feat, or every change is fix — ask: could a reader bisect or revert any one of these independently? If yes, they belong in separate commits. A single feat commit that redesigns the quiz player, the unlock screen, and adds a new question type cannot be reverted cleanly and tells a reader nothing useful about where to look. Apply the same split suggestion in that case, using scope as the dividing line rather than type.
 
+```
+Suggested splits:
+
+`feat(dashboard): add summary stats panel`
+  dashboard/StatsPanel.tsx
+  dashboard/StatsPanel.css
+
+`feat(profile): add avatar upload`
+  profile/AvatarUpload.tsx
+  profile/AvatarUpload.css
+
+`feat(notifications): add in-app notification banner`
+  notifications/Banner.tsx
+  notifications/bannerSlice.ts
+```
+
 ## Checking the diff against intent
 
 Developers use the commit message as a sanity check: if a message written from the diff says something different from what they believe they changed, that's worth knowing before it's committed. This only works if the message is written from the diff, so:
