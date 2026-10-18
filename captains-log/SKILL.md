@@ -204,6 +204,8 @@ Suggested splits:
 
 Ask which group the developer wants to stage and commit first. For a developer's commit, don't unstage or restage anything yourself — name the files and let them restage. This is a suggestion; the developer decides. If they want a single commit anyway, use the type of the change with the most user impact (`feat` > `fix` > `perf` > `refactor` > the rest) and name the secondary change in one short body line.
 
+Same-type bundles also need splitting. Type conflict is the obvious trigger, but scope conflict is just as important. If the diff touches independent areas of the codebase — even if every change is feat, or every change is fix — ask: could a reader bisect or revert any one of these independently? If yes, they belong in separate commits. A single feat commit that redesigns the quiz player, the unlock screen, and adds a new question type cannot be reverted cleanly and tells a reader nothing useful about where to look. Apply the same split suggestion in that case, using scope as the dividing line rather than type.
+
 ## Checking the diff against intent
 
 Developers use the commit message as a sanity check: if a message written from the diff says something different from what they believe they changed, that's worth knowing before it's committed. This only works if the message is written from the diff, so:
