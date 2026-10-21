@@ -81,8 +81,19 @@ Say "Boots on, eyes on the forest floor." then proceed.
             tar -xzf /tmp/gh.tar.gz -C /tmp && cp /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
             ```
             If the install succeeds, continue pre-flight without interruption. If it fails, stop with: "Could not install gh automatically. Install it manually and run `/lumber-jane` again."
-        - If the platform is not Linux x86_64, or Node.js is unavailable, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. Then run `/lumber-jane` again."
-    - Run `gh auth status`. If it fails, say: "gh is not authenticated. Switching to host-assisted mode — I'll tell you what to run on your host machine where gh is already set up." Then continue pre-flight without stopping. Record that this run is in **host-assisted mode** (affects step 4).
+        - If the platform is not Linux x86_64, or Node.js is unavailable:
+            - Check for a token: run `echo "${GITHUB_TOKEN:-}${GH_TOKEN:-}"`. Prefer `GITHUB_TOKEN`; fall back to `GH_TOKEN`. Treat a non-empty result as available.
+            - If neither is set, ask the developer: "No gh binary found. Do you have a GitHub personal access token I can use instead?" Wait for a reply. If they provide one, use it as TOKEN.
+            - If a token is now available (env or input), record it, switch to **curl mode**, and continue pre-flight without stopping.
+            - If no token is available, stop with: "gh is not installed. Install it with `brew install gh` (macOS/Linux with Homebrew), `sudo apt-get install gh -y` (Debian/Ubuntu), or see cli.github.com for other platforms. Then run `/lumber-jane` again."
+
+    **If in curl mode**, before leaving the pre-flight step:
+
+    - Parse the GitHub owner and repo name from the remote URL: `git remote get-url origin`. Accept both HTTPS (`https://github.com/{owner}/{repo}[.git]`) and SSH (`git@github.com:{owner}/{repo}[.git]`) forms. Strip a trailing `.git`. If parsing fails, stop: "Could not determine GitHub owner/repo from remote URL."
+    - Verify the token: `curl -s -H "Authorization: Bearer <TOKEN>" https://api.github.com/user`. If the response body has no `login` field or returns an HTTP error, stop: "Token authentication failed. Check that the token has `repo` (or `read:org`) scope."
+    - Record the `login` value, owner, repo, and TOKEN for use in step 4.
+
+    **If not in curl mode** (gh binary is present — either pre-installed or just auto-installed): run `gh auth status`. If it fails, say: "gh is not authenticated. Switching to host-assisted mode — I'll tell you what to run on your host machine where gh is already set up." Then continue pre-flight without stopping. Record that this run is in **host-assisted mode** (affects step 4).
 - List all worktree-checked-out branches: `git worktree list --porcelain | grep '^branch'`. Add these to the protected list for this run — `git branch -D` would fail on them anyway, and treating them like the current branch is the right behaviour. They are not mentioned in the summary unless they would otherwise have qualified for deletion, in which case note them alongside the current-branch case.
 
 ### 2. Fetch and find gone branches
@@ -128,6 +139,27 @@ done
 Say: "Run this on your host machine where gh is authenticated, then paste the output here."
 
 Wait for the paste, then parse it: the `=== current-user ===` section gives the login; each `=== <branch> ===` section contains the JSON array from `gh pr list` for that branch. Treat missing or malformed sections as "no PR found" — keep the branch.
+
+**If running in curl mode** (no gh binary, token provided):
+
+Get the current user: already verified in pre-flight — use the `login` value recorded then.
+
+For each remaining candidate branch, fetch its PR data:
+
+```
+curl -s -H "Authorization: Bearer <TOKEN>" \
+  "https://api.github.com/repos/{owner}/{repo}/pulls?state=all&head={owner}:{branch}&per_page=10"
+```
+
+Map the REST API response fields to the format used in normal mode:
+
+- `.user.login`  → `author.login`
+- `.number`      → `number`
+- `.head.sha`    → `headRefOid`
+- `.base.ref`    → `baseRefName`
+- state: if `.merged_at` is not null → `"MERGED"`; else if `.state == "open"` → `"OPEN"`; else → `"CLOSED"`
+
+Parse the JSON response directly — no jq required. Apply the same deletion criteria, keep/delete logic, and failure-means-keep rule as in normal mode. If the curl call fails (network error, non-JSON response), treat it as "no PR found" and keep the branch.
 
 **If running normally** (gh authenticated locally):
 
